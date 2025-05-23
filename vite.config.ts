@@ -9,6 +9,12 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue(), vueJsx(), vueDevTools(), tailwindcss()],
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    allowedHosts: ['localhost', 'pride-operations-ls-obj.trycloudflare.com', '.trycloudflare.com'],
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

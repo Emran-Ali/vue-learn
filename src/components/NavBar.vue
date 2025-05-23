@@ -54,6 +54,12 @@ const toggleMobileMenu = () => {
             >
               Blog
             </RouterLink>
+            <RouterLink
+              to="/login"
+              :class="`${route.path === '/blog' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+            >
+              Log In
+            </RouterLink>
           </div>
         </div>
 
