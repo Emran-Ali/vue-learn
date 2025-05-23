@@ -5,6 +5,7 @@ import { isMobile } from '../utils/Mobile'
 import { ClosedCaptionManager } from '../utils/CloseCaption'
 import VideoParticipant from '../components/VideoParticipant.vue'
 import CallControls from '../components/CallControls.vue'
+import { useRouter } from 'vue-router'
 
 interface UserInfo {
   userId: string
@@ -16,6 +17,7 @@ const props = defineProps<{
   userInfo: UserInfo
 }>()
 
+const router = useRouter()
 const apiKey = props.userInfo.apiKey
 const token = props.userInfo.token
 const user: User = { id: props.userInfo.userId }
@@ -69,13 +71,46 @@ const handleCaptionContainer = (element: HTMLElement) => {
 const handleConnectionStatus = (status: 'connected' | 'disconnected' | 'reconnecting') => {
   connectionStatus.value = status
   console.log('Connection status changed:', status)
+}
 
-  // You could show a notification or take other actions based on connection status
+const handleLeaveCall = async () => {
+  try {
+    // Set connection status to disconnected
+    connectionStatus.value = 'disconnected'
+
+    // Disable camera and microphone
+    await call.camera.disable()
+    await call.microphone.disable()
+
+    // Leave the call
+    await call.leave()
+
+    // End the call (if you're the host)
+    try {
+      await call.endCall()
+    } catch (error) {
+      console.log('Not the host or call already ended')
+    }
+
+    // Show confirmation that call has ended
+    alert('You have left the call')
+
+    // Navigate back to home or another page
+    // router.push('/');
+  } catch (error) {
+    console.error('Error leaving call:', error)
+  }
 }
 
 onBeforeUnmount(() => {
+  // Update connection status before leaving
+  connectionStatus.value = 'disconnected'
   call.leave()
-  call.endCall()
+  try {
+    call.endCall()
+  } catch (error) {
+    console.log('Error ending call during unmount:', error)
+  }
 })
 </script>
 
@@ -90,11 +125,19 @@ onBeforeUnmount(() => {
       {{
         connectionStatus === 'reconnecting'
           ? 'Reconnecting to call...'
-          : 'Connection lost. Trying to reconnect...'
+          : connectionStatus === 'disconnected'
+            ? 'Call ended'
+            : 'Connection lost. Trying to reconnect...'
       }}
     </div>
 
-    <div ref="participantsRef" id="participants" class="participants-container">
+    <!-- Show participants only if connected -->
+    <div
+      v-if="connectionStatus !== 'disconnected'"
+      ref="participantsRef"
+      id="participants"
+      class="participants-container"
+    >
       <VideoParticipant
         v-for="participant in participants"
         :key="participant.sessionId"
@@ -102,11 +145,18 @@ onBeforeUnmount(() => {
         :call="call"
       />
     </div>
+    <!-- Show call ended message if disconnected -->
+    <div v-else class="call-ended-container">
+      <h2>Call Ended</h2>
+      <p>You have left the video call.</p>
+    </div>
+
     <div id="closed-captions" class="captions-container"></div>
     <CallControls
       :call="call"
       @caption-container="handleCaptionContainer"
       @connection-status="handleConnectionStatus"
+      @leave-call="handleLeaveCall"
     />
   </div>
 </template>
@@ -139,6 +189,21 @@ onBeforeUnmount(() => {
 
 .connection-notification.disconnected {
   background-color: #e74c3c;
+}
+
+.call-ended-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.call-ended-container h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
 @keyframes pulse {

@@ -83,10 +83,11 @@ const captionStatus = ref<'on' | 'off'>('off')
 const closedCaptionManager = ref<ClosedCaptionManager>()
 const captionText = ref('')
 
-// Define emit for caption container
+// Define emit for caption container and leave call
 const emit = defineEmits<{
   (e: 'caption-container', element: HTMLElement): void
   (e: 'connection-status', status: 'connected' | 'disconnected' | 'reconnecting'): void
+  (e: 'leave-call'): void
 }>()
 
 const toggleCaptions = () => {
@@ -99,6 +100,14 @@ const toggleCaptions = () => {
     closedCaptionManager.value.showCaptions()
     captionStatus.value = 'on'
   }
+}
+
+// Leave call function
+const leaveCall = () => {
+  // Update connection status to disconnected
+  connectionStatus.value = 'disconnected'
+  emit('connection-status', 'disconnected')
+  emit('leave-call')
 }
 
 // Convert MediaDeviceInfo to SafeMediaDeviceInfo
@@ -306,27 +315,31 @@ onMounted(() => {
           ? '🟢 Connected'
           : connectionStatus === 'reconnecting'
             ? '🟠 Reconnecting...'
-            : '🔴 Disconnected'
+            : '🔴 Call Ended'
       }}
     </div>
 
     <!-- Mic control -->
-    <button @click="toggleMic">
+    <button @click="toggleMic" :disabled="connectionStatus === 'disconnected'">
       {{ micStatus === 'enabled' ? 'Turn off mic' : 'Turn on mic' }}
     </button>
 
     <!-- Camera control -->
-    <button @click="toggleCamera">
+    <button @click="toggleCamera" :disabled="connectionStatus === 'disconnected'">
       {{ cameraStatus === 'enabled' ? 'Turn off camera' : 'Turn on camera' }}
     </button>
 
     <!-- Screen share control -->
-    <button @click="toggleScreenShare">
+    <button @click="toggleScreenShare" :disabled="connectionStatus === 'disconnected'">
       {{ screenShareStatus === 'enabled' ? 'Turn off screen share' : 'Turn on screen share' }}
     </button>
 
     <!-- Audio device selector -->
-    <select v-if="audioDevices.length" @change="selectAudioDevice">
+    <select
+      v-if="audioDevices.length"
+      @change="selectAudioDevice"
+      :disabled="connectionStatus === 'disconnected'"
+    >
       <option v-for="device in audioDevices" :key="device.deviceId" :value="device.deviceId">
         {{ device.label }}
       </option>
@@ -334,12 +347,16 @@ onMounted(() => {
 
     <!-- Mobile camera flip or desktop video device selector -->
     <template v-if="isMobile.any()">
-      <button @click="flipCamera">
+      <button @click="flipCamera" :disabled="connectionStatus === 'disconnected'">
         {{ cameraDirection === 'front' ? 'Back camera' : 'Front camera' }}
       </button>
     </template>
     <template v-else>
-      <select v-if="videoDevices.length" @change="selectVideoDevice">
+      <select
+        v-if="videoDevices.length"
+        @change="selectVideoDevice"
+        :disabled="connectionStatus === 'disconnected'"
+      >
         <option v-for="device in videoDevices" :key="device.deviceId" :value="device.deviceId">
           {{ device.label }}
         </option>
@@ -347,18 +364,40 @@ onMounted(() => {
     </template>
 
     <!-- Audio output selector (if supported) -->
-    <select v-if="audioOutputSupported && audioOutputDevices.length" @change="selectAudioOutput">
+    <select
+      v-if="audioOutputSupported && audioOutputDevices.length"
+      @change="selectAudioOutput"
+      :disabled="connectionStatus === 'disconnected'"
+    >
       <option v-for="device in audioOutputDevices" :key="device.deviceId" :value="device.deviceId">
         {{ device.label }}
       </option>
     </select>
 
     <!-- Volume control -->
-    <input type="range" min="0" max="1" step="0.1" :value="volume" @change="setVolume" />
+    <input
+      type="range"
+      min="0"
+      max="1"
+      step="0.1"
+      :value="volume"
+      @change="setVolume"
+      :disabled="connectionStatus === 'disconnected'"
+    />
 
     <!-- Closed captions toggle -->
-    <button @click="toggleCaptions">
+    <button @click="toggleCaptions" :disabled="connectionStatus === 'disconnected'">
       {{ captionStatus === 'on' ? 'Turn off closed captions' : 'Turn on closed captions' }}
+    </button>
+
+    <!-- Leave call button -->
+    <button
+      @click="leaveCall"
+      class="leave-call-btn"
+      :disabled="connectionStatus === 'disconnected'"
+      :class="{ 'call-ended': connectionStatus === 'disconnected' }"
+    >
+      {{ connectionStatus === 'disconnected' ? 'Call Ended' : 'Leave Call' }}
     </button>
   </div>
 </template>
@@ -419,13 +458,41 @@ button:hover {
   background: #666;
 }
 
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.leave-call-btn {
+  background-color: #e74c3c;
+  margin-left: auto;
+}
+
+.leave-call-btn:hover {
+  background-color: #c0392b;
+}
+
+.leave-call-btn.call-ended {
+  background-color: #95a5a6;
+}
+
 select {
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
 
+select:disabled {
+  opacity: 0.7;
+  background-color: #f5f5f5;
+}
+
 input[type='range'] {
   width: 100px;
+}
+
+input[type='range']:disabled {
+  opacity: 0.7;
 }
 </style>
