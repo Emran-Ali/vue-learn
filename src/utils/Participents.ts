@@ -30,6 +30,12 @@ const renderVideo = (
     videoEl.height = videoDimension.height
     videoEl.dataset.sessionId = participant.sessionId
 
+    if (participant.isLocalParticipant) {
+      videoEl.classList.add('local-vedio')
+    } else {
+      videoEl.classList.add('user-vedio')
+    }
+
     parentContainer.appendChild(videoEl)
 
     const untrack = call.trackElementVisibility(videoEl, participant.sessionId, 'videoTrack')
