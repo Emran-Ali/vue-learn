@@ -132,6 +132,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- Show participants only if connected -->
+
     <div
       v-if="connectionStatus !== 'disconnected'"
       ref="participantsRef"
