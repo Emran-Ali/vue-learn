@@ -36,11 +36,12 @@ const client = new StreamVideoClient({
 const callId = props.userInfo.channelId
 const call = client.call('default', callId)
 
-await call.getOrCreate({
-  data: {
-    members: [{ user_id: 'emran', role: 'admin' }, { user_id: 'rayhan' }, { user_id: 'sohan' }],
-  },
-})
+// await call.getOrCreate({
+//   data: {
+//     members: [{ user_id: 'emran', role: 'admin' }, { user_id: 'rayhan' }, { user_id: 'sohan' }],
+//   },
+// })
+
 call.screenShare.enableScreenShareAudio()
 call.screenShare.setSettings({
   maxFramerate: 10,
@@ -111,6 +112,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   call.leave()
+  call.endCall()
 })
 </script>
 
@@ -122,12 +124,10 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .video-chat {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .controls-container {
@@ -138,14 +138,12 @@ onBeforeUnmount(() => {
 }
 
 .participants-container {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+  border: 1px solid greenyellow;
+  border-radius: 9px;
 }
 
 .captions-container {
+  display: none;
   position: fixed;
   bottom: 2rem;
   left: 50%;
@@ -155,5 +153,18 @@ onBeforeUnmount(() => {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   max-width: 80%;
+}
+
+.control-button {
+  border-radius: 9999px;
+  background-color: greenyellow;
+  border: none;
+  padding: 8px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 </style>
