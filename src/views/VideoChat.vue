@@ -1,16 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { StreamVideoClient, type User, type StreamVideoParticipant } from '@stream-io/video-client'
-import { renderControls } from '../utils/Controls'
-import {
-  renderAudioDeviceSelector,
-  renderAudioOutputSelector,
-  renderVideoDeviceSelector,
-  renderVolumeControl,
-} from '../utils/DiviceSelector'
 import { isMobile } from '../utils/Mobile'
 import { ClosedCaptionManager } from '../utils/CloseCaption'
 import VideoParticipant from '../components/VideoParticipant.vue'
+import CallControls from '../components/CallControls.vue'
 
 interface UserInfo {
   userId: string
@@ -45,33 +39,10 @@ call.screenShare.setSettings({
 let closedCaptionManager: ClosedCaptionManager
 const participants = ref<StreamVideoParticipant[]>([])
 const participantsRef = ref<HTMLElement | null>(null)
+const captionContainerRef = ref<HTMLElement | null>(null)
+const connectionStatus = ref<'connected' | 'disconnected' | 'reconnecting'>('connected')
 
 onMounted(() => {
-  const container = document.getElementById('call-controls')!
-  const captionContainer = document.getElementById('closed-captions')
-
-  // render mic and camera controls
-  const controls = renderControls(call)
-  container.appendChild(controls.audioButton)
-  container.appendChild(controls.videoButton)
-  container.appendChild(controls.screenShareButton)
-
-  container.appendChild(renderAudioDeviceSelector(call))
-
-  // render device selectors
-  if (isMobile.any()) {
-    container.appendChild(controls.flipButton)
-  } else {
-    container.appendChild(renderVideoDeviceSelector(call))
-  }
-
-  const audioOutputSelector = renderAudioOutputSelector(call)
-  if (audioOutputSelector) {
-    container.appendChild(audioOutputSelector)
-  }
-
-  container.appendChild(renderVolumeControl(call))
-
   call.join({ create: true }).then(() => {
     call.camera.enable()
     call.microphone.enable()
@@ -88,6 +59,20 @@ onMounted(() => {
   })
 })
 
+const handleCaptionContainer = (element: HTMLElement) => {
+  const captionContainer = document.getElementById('closed-captions')
+  if (captionContainer) {
+    captionContainer.appendChild(element)
+  }
+}
+
+const handleConnectionStatus = (status: 'connected' | 'disconnected' | 'reconnecting') => {
+  connectionStatus.value = status
+  console.log('Connection status changed:', status)
+
+  // You could show a notification or take other actions based on connection status
+}
+
 onBeforeUnmount(() => {
   call.leave()
   call.endCall()
@@ -96,6 +81,19 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="video-chat">
+    <!-- Connection status notification -->
+    <div
+      v-if="connectionStatus !== 'connected'"
+      class="connection-notification"
+      :class="connectionStatus"
+    >
+      {{
+        connectionStatus === 'reconnecting'
+          ? 'Reconnecting to call...'
+          : 'Connection lost. Trying to reconnect...'
+      }}
+    </div>
+
     <div ref="participantsRef" id="participants" class="participants-container">
       <VideoParticipant
         v-for="participant in participants"
@@ -104,38 +102,74 @@ onBeforeUnmount(() => {
         :call="call"
       />
     </div>
-    <div id="call-controls" class="controls-container"></div>
+    <div id="closed-captions" class="captions-container"></div>
+    <CallControls
+      :call="call"
+      @caption-container="handleCaptionContainer"
+      @connection-status="handleConnectionStatus"
+    />
   </div>
 </template>
 
-<style>
+<style scoped>
 .video-chat {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-.controls-container {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.1);
+.connection-notification {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  color: white;
+  font-weight: bold;
+  z-index: 100;
+}
+
+.connection-notification.reconnecting {
+  background-color: #f39c12;
+  animation: pulse 1.5s infinite;
+}
+
+.connection-notification.disconnected {
+  background-color: #e74c3c;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .participants-container {
-  border: 1px solid greenyellow;
-  border-radius: 9px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
 }
 
-.control-button {
-  border-radius: 9999px;
-  background-color: greenyellow;
-  border: none;
-  padding: 8px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.captions-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  max-width: 80%;
 }
 </style>
