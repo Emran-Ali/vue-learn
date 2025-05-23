@@ -72,14 +72,6 @@ onMounted(() => {
 
   container.appendChild(renderVolumeControl(call))
 
-  // Closed caption controls
-  closedCaptionManager = new ClosedCaptionManager(call)
-  container.appendChild(closedCaptionManager.renderToggleElement())
-
-  if (captionContainer) {
-    captionContainer.appendChild(closedCaptionManager.renderCaptionContainer())
-  }
-
   call.join({ create: true }).then(() => {
     call.camera.enable()
     call.microphone.enable()
@@ -112,7 +104,6 @@ onBeforeUnmount(() => {
         :call="call"
       />
     </div>
-    <div id="closed-captions" class="captions-container"></div>
     <div id="call-controls" class="controls-container"></div>
   </div>
 </template>
@@ -133,19 +124,6 @@ onBeforeUnmount(() => {
 .participants-container {
   border: 1px solid greenyellow;
   border-radius: 9px;
-}
-
-.captions-container {
-  display: none;
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  max-width: 80%;
 }
 
 .control-button {
