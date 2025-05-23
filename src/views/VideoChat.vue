@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount } from 'vue'
-import { StreamVideoClient, type User } from '@stream-io/video-client'
-import { cleanupParticipant, renderParticipant } from '../utils/Participents'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { StreamVideoClient, type User, type StreamVideoParticipant } from '@stream-io/video-client'
 import { renderControls } from '../utils/Controls'
 import {
   renderAudioDeviceSelector,
@@ -11,6 +10,7 @@ import {
 } from '../utils/DiviceSelector'
 import { isMobile } from '../utils/Mobile'
 import { ClosedCaptionManager } from '../utils/CloseCaption'
+import VideoParticipant from '../components/VideoParticipant.vue'
 
 interface UserInfo {
   userId: string
@@ -36,12 +36,6 @@ const client = new StreamVideoClient({
 const callId = props.userInfo.channelId
 const call = client.call('default', callId)
 
-// await call.getOrCreate({
-//   data: {
-//     members: [{ user_id: 'emran', role: 'admin' }, { user_id: 'rayhan' }, { user_id: 'sohan' }],
-//   },
-// })
-
 call.screenShare.enableScreenShareAudio()
 call.screenShare.setSettings({
   maxFramerate: 10,
@@ -49,10 +43,11 @@ call.screenShare.setSettings({
 })
 
 let closedCaptionManager: ClosedCaptionManager
+const participants = ref<StreamVideoParticipant[]>([])
+const participantsRef = ref<HTMLElement | null>(null)
 
 onMounted(() => {
   const container = document.getElementById('call-controls')!
-  const parentContainer = document.getElementById('participants')!
   const captionContainer = document.getElementById('closed-captions')
 
   // render mic and camera controls
@@ -90,23 +85,14 @@ onMounted(() => {
     call.microphone.enable()
   })
 
-  call.setViewport(parentContainer)
+  // Set the viewport to our ref element
+  if (participantsRef.value) {
+    call.setViewport(participantsRef.value)
+  }
 
-  call.state.participants$.subscribe((participants) => {
-    // render / update existing participants
-    participants.forEach((participant) => {
-      renderParticipant(call, participant, parentContainer)
-    })
-
-    // Remove stale elements for stale participants
-    parentContainer.querySelectorAll<HTMLMediaElement>('video, audio').forEach((el) => {
-      const sessionId = el.dataset.sessionId!
-      const participant = participants.find((p) => p.sessionId === sessionId)
-      if (!participant) {
-        cleanupParticipant(sessionId)
-        el.remove()
-      }
-    })
+  // Subscribe to participants changes
+  call.state.participants$.subscribe((newParticipants) => {
+    participants.value = newParticipants
   })
 })
 
@@ -118,7 +104,14 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="video-chat">
-    <div id="participants" class="participants-container"></div>
+    <div ref="participantsRef" id="participants" class="participants-container">
+      <VideoParticipant
+        v-for="participant in participants"
+        :key="participant.sessionId"
+        :participant="participant"
+        :call="call"
+      />
+    </div>
     <div id="closed-captions" class="captions-container"></div>
     <div id="call-controls" class="controls-container"></div>
   </div>
