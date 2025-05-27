@@ -6,17 +6,25 @@ import VideoChat from './VideoChat.vue'
 const streamStore = useStreamStore()
 
 const hasUser = ref(false)
-const user = ref<null | { userId: string; token: string; apiKey: string; channelId: string }>(null)
-const userId = ref('')
+// const token = ref<null | { streamToken: string }>(null)
+const user = ref<any>(null)
+const email = ref('')
+const password = ref('')
 
 const submit = async () => {
-  const result = await streamStore.getUser(userId.value)
-  if (result) {
-    user.value = result
-    hasUser.value = true
-  } else {
-    hasUser.value = false
-  }
+  const result = await streamStore.login(email.value, password.value)
+  const authUser = await streamStore.authUser()
+
+  console.log(authUser)
+
+  user.value = authUser
+  console.log(user.value)
+
+  user.value.streamToken = result?.streamToken
+
+  console.log('user after fetch', user.value)
+
+  hasUser.value = true
 }
 </script>
 
@@ -27,12 +35,13 @@ const submit = async () => {
 
     <div v-if="!hasUser">
       <form @submit.prevent="submit">
-        <input class="border border-2 m-2" type="text" v-model="userId" />
+        <input class="border border-2 m-2" type="text" v-model="email" />
+        <input class="border border-2 m-2" type="text" v-model="password" />
         <br />
         <button type="submit" class="p-2 border border-2 rounded-lg">Get User Info</button>
       </form>
     </div>
 
-    <VideoChat v-if="user !== null" :userInfo="user" />
+    <VideoChat v-if="hasUser" :userInfo="user" />
   </div>
 </template>

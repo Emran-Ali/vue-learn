@@ -1,26 +1,34 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue'
-import { StreamVideoClient, type User, type StreamVideoParticipant } from '@stream-io/video-client'
-import { isMobile } from '../utils/Mobile'
+import {
+  StreamVideoClient,
+  type User,
+  type StreamVideoParticipant,
+  OwnCapability,
+} from '@stream-io/video-client'
 import { ClosedCaptionManager } from '../utils/CloseCaption'
 import VideoParticipant from '../components/VideoParticipant.vue'
 import CallControls from '../components/CallControls.vue'
-import { useRouter } from 'vue-router'
 
-interface UserInfo {
-  userId: string
-  token: string
-  channelId: string
-  apiKey: string
-}
 const props = defineProps<{
-  userInfo: UserInfo
+  userInfo: any
 }>()
 
-const router = useRouter()
-const apiKey = props.userInfo.apiKey
-const token = props.userInfo.token
-const user: User = { id: props.userInfo.userId }
+const error1 = ref<any>(null)
+
+console.log(props.userInfo, 'USER INFO FROM PROPS')
+
+const apiKey = 'fmes3fcbxma6'
+const token = props.userInfo.streamToken
+
+const user = {
+  id:
+    props.userInfo.role === 'STUDENT'
+      ? `student-${props.userInfo.id}`
+      : `teacher-${props.userInfo.id}`,
+}
+
+console.log(apiKey, token, user, 'Client Info')
 
 const client = new StreamVideoClient({
   apiKey,
@@ -29,14 +37,39 @@ const client = new StreamVideoClient({
   options: { logLevel: 'info' },
 })
 
-const callId = props.userInfo.channelId
-const call = client.call('default', callId)
+const call = client.call('classroom', 'lesson-6')
 
-call.screenShare.enableScreenShareAudio()
-call.screenShare.setSettings({
-  maxFramerate: 10,
-  maxBitrate: 1500000,
-})
+console.log(call)
+
+// await call.getOrCreate({
+//   data: {
+//     settings_override: {
+//       limits: {
+//         max_duration_seconds: 3600,
+//       },
+//     },
+//   },
+// })
+
+// const duration = call.state.settings?.limits.max_duration_seconds! + 60
+
+// call.update({
+//   settings_override: {
+//     limits: {
+//       max_duration_seconds: duration,
+//     },
+//   },
+// })
+
+const canScreenshare = call.permissionsContext.hasPermission(OwnCapability.SCREENSHARE)
+
+if (canScreenshare) {
+  call.screenShare.enableScreenShareAudio()
+  call.screenShare.setSettings({
+    maxFramerate: 10,
+    maxBitrate: 1500000,
+  })
+}
 
 let closedCaptionManager: ClosedCaptionManager
 const participants = ref<StreamVideoParticipant[]>([])
@@ -44,11 +77,17 @@ const participantsRef = ref<HTMLElement | null>(null)
 const captionContainerRef = ref<HTMLElement | null>(null)
 const connectionStatus = ref<'connected' | 'disconnected' | 'reconnecting'>('connected')
 
-onMounted(() => {
-  call.join({ create: true }).then(() => {
-    call.camera.enable()
-    call.microphone.enable()
-  })
+onMounted(async () => {
+  try {
+    const join = await call.join().then(() => {
+      call.camera.enable()
+      call.microphone.enable()
+    })
+    console.log(join, 'Join info on mopunt ')
+  } catch (error) {
+    error1.value = error
+    console.log(error)
+  }
 
   // Set the viewport to our ref element
   if (participantsRef.value) {
@@ -115,7 +154,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="video-chat">
+  <div v-if="error1 === null" class="video-chat">
     <!-- Connection status notification -->
     <div
       v-if="connectionStatus !== 'connected'"
@@ -160,6 +199,8 @@ onBeforeUnmount(() => {
       @leave-call="handleLeaveCall"
     />
   </div>
+
+  <div v-else class="h-60 w-full bg-cyan-700 text-white text-center">Opps error {{ error1 }}</div>
 </template>
 
 <style scoped>

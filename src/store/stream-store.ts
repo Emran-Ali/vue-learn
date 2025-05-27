@@ -4,13 +4,13 @@ import axios from 'axios'
 export const useStreamStore = defineStore('stream', () => {
   async function login(email: string, password: string) {
     try {
-      const response = await axios.post('http://localhost:3030/login', {
+      const response = await axios.post('http://localhost:3030/auth/login', {
         email,
         password,
       })
 
-      const accessToken = response.data.access_token
-      const streamToken = response.data.stream_token
+      const accessToken = response.data.data.accessToken
+      const streamToken = response.data.data.streamToken
 
       if (accessToken) {
         // Store token in localStorage
@@ -19,8 +19,7 @@ export const useStreamStore = defineStore('stream', () => {
 
         // Optionally store other user data
         // localStorage.setItem('user', JSON.stringify(response.data.user));
-
-        console.log('Login successful')
+        return { accessToken, streamToken }
       } else {
         console.error('No access token in response')
       }
@@ -29,11 +28,22 @@ export const useStreamStore = defineStore('stream', () => {
     }
   }
 
+  async function authUser() {
+    const accessToken = localStorage.getItem('access_token')
+    const user = await axios.get('http://localhost:3030/auth/current-user', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    return user.data
+  }
+
   async function getUser(
     id: string,
   ): Promise<{ userId: string; token: string; apiKey: string; channelId: string }> {
     const response = await axios.get(
-      `https://aka-situation-pacific-manuals.trycloudflare.com/stream-webhook/stream-info?userId=${id}`,
+      `https://gothic-tennessee-hats-medicine.trycloudflare.com/stream-webhook/stream-info?userId=${id}`,
     )
     return response.data
   }
@@ -41,5 +51,6 @@ export const useStreamStore = defineStore('stream', () => {
   return {
     login: login,
     getUser: getUser,
+    authUser: authUser,
   }
 })
