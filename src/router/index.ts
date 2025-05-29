@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import LogIn from '@/views/LogIn.vue'
 import Lesson from '@/views/Lesson.vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import CreateUser from '@/views/CreateUser.vue'
 
 const route = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,6 +28,11 @@ const route = createRouter({
       path: '/lessons',
       name: 'Lesson-call',
       component: Lesson,
+    },
+    {
+      path: '/create-user',
+      name: 'Create user',
+      component: CreateUser,
     },
   ],
 })

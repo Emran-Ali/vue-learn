@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import type { name } from '@stream-io/video-client'
 
 export const useStreamStore = defineStore('stream', () => {
   async function login(email: string, password: string) {
@@ -38,8 +39,28 @@ export const useStreamStore = defineStore('stream', () => {
     return response.data
   }
 
+  async function createUser(user: { userId: string; name: string; role: string; image?: string }) {
+    const response = await axios.post('http://localhost:3030/stream/create-user', user)
+
+    return response.data
+  }
+
+  async function getStreaToken(userId: string) {
+    const response = await axios.get(`http://localhost:3030/stream/user-token${userId}`)
+
+    return response.data
+  }
+
+  async function createCall(callData: { callid: string; teacherId: string; studentId: string }) {
+    const response = await axios.post('http://localhost:3030/stream/create-call', callData)
+    return response.data
+  }
+
   return {
     login: login,
     getUser: getUser,
+    createUser: createUser,
+    getStreaToken: getStreaToken,
+    createCall: createCall,
   }
 })
