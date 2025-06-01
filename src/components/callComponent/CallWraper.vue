@@ -1,31 +1,51 @@
 <script setup lang="ts">
-import { StreamVideoClient, type User, CallingState } from '@stream-io/video-client'
-import { provide } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { StreamVideoClient, type User } from '@stream-io/video-client'
+import { useRouter } from 'vue-router'
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY
 const token = localStorage.getItem('streamToken') ?? undefined
 const userId = localStorage.getItem('user') ?? ''
 const user: User = { id: userId }
 
-const client = new StreamVideoClient({
-  apiKey,
-  token,
-  user,
-  options: { logLevel: 'info' },
-})
+const router = useRouter()
 
+if (!apiKey || !token || !userId) {
+  router.push('/login')
+}
+
+const client = ref<StreamVideoClient | null>(null)
+
+// Initialize Stream client
+const initializeClient = async () => {
+  try {
+    client.value = new StreamVideoClient({
+      apiKey,
+      token,
+      user,
+      options: { logLevel: 'info' },
+    })
+  } catch (error) {
+    console.error('Failed to initialize Stream client:', error)
+  }
+}
 provide('streamClient', client)
 
-client.state.calls$.subscribe((calls) => {
-  const incomingCalls = calls.filter(
-    (call) => call.isCreatedByMe === false && call.state.callingState === CallingState.RINGING,
-  )
-  console.log('Incoming calls', incomingCalls)
-  const outgoingCalls = calls.filter(
-    (call) => call.isCreatedByMe === true && call.state.callingState === CallingState.RINGING,
-  )
-  console.log('Outgoing calls', outgoingCalls)
+// Lifecycle
+onMounted(() => {
+  initializeClient()
+})
+
+onUnmounted(() => {
+  subscription?.unsubscribe()
+  client.value?.disconnectUser()
 })
 </script>
 
-<template></template>
+<template>
+  <div class="call-wrapper">
+    <slot :client="client" />
+  </div>
+</template>
+
+<style scoped></style>

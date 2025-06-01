@@ -8,7 +8,7 @@
         <input
           type="text"
           id="id"
-          v-model="user.userId"
+          v-model="user.id"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-cyan-900 leading-tight focus:outline-none focus:shadow-outline"
         />
       </div>
@@ -53,21 +53,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useStreamStore } from '../store/stream-store'
 
 const streamStore = useStreamStore()
 
 const user = ref({
-  userId: '',
+  id: '',
   name: '',
   role: '',
   image: '',
 })
 
-const handleSubmit = () => {
-  const res = streamStore.createUser(user)
-  console.log(res)
+const handleSubmit = async () => {
+  console.log(user, 'streamStore submit')
+  const res = await streamStore.createUser(user.value)
 }
 </script>

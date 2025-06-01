@@ -28,22 +28,22 @@ const toggleMobileMenu = () => {
               Home
             </RouterLink>
             <RouterLink
-              to="/students"
-              :class="`${route.path === '/student' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+              to="/lesson-call"
+              :class="`${route.path === '/lesson-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
-              Student
+              Lesson Call
             </RouterLink>
 
             <RouterLink
-              to="/teachers"
-              :class="`${route.path === '/teacher' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+              to="/blogs"
+              :class="`${route.path === '/blogs' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
-              Teacher
+              Blog
             </RouterLink>
 
             <RouterLink
               to="/lessons"
-              :class="`${route.path === '/lesson' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+              :class="`${route.path === '/lessons' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
               Lesson
             </RouterLink>
@@ -53,6 +53,12 @@ const toggleMobileMenu = () => {
               :class="`${route.path === '/create-user' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
               Create User
+            </RouterLink>
+            <RouterLink
+              to="/create-call"
+              :class="`${route.path === '/create-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+            >
+              Create Call
             </RouterLink>
             <RouterLink
               to="/login"
@@ -93,33 +99,51 @@ const toggleMobileMenu = () => {
     <!-- Mobile Menu -->
     <div v-show="isMobileMenuOpen" class="md:hidden">
       <div class="px-2 pt-2 pb-3 space-y-1">
-        <a
-          to="/student"
-          :class="`${route.path === '/student' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 block px-3 py-2 rounded-md text-base font-medium`"
+        <RouterLink
+          to="/"
+          :class="`${route.path === '/' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
         >
-          Student
-        </a>
-
-        <a
-          to="/teacher"
-          :class="`${route.path === '/teacher' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 block px-3 py-2 rounded-md text-base font-medium`"
+          Home
+        </RouterLink>
+        <RouterLink
+          to="/lesson-call"
+          :class="`${route.path === '/lesson-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
         >
-          Teacher
-        </a>
+          Lesson Call
+        </RouterLink>
 
-        <a
-          to="/lesson"
-          :class="`${route.path === '/lesson' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 block px-3 py-2 rounded-md text-base font-medium`"
-        >
-          Lesson
-        </a>
-
-        <a
-          to="/blog"
-          :class="`${route.path === '/blog' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 block px-3 py-2 rounded-md text-base font-medium`"
+        <RouterLink
+          to="/teachers"
+          :class="`${route.path === '/blogs' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
         >
           Blog
-        </a>
+        </RouterLink>
+
+        <RouterLink
+          to="/lessons"
+          :class="`${route.path === '/lessons' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+        >
+          Lesson
+        </RouterLink>
+
+        <RouterLink
+          to="/create-user"
+          :class="`${route.path === '/create-user' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+        >
+          Create User
+        </RouterLink>
+        <RouterLink
+          to="/create-call"
+          :class="`${route.path === '/create-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+        >
+          Create Call
+        </RouterLink>
+        <RouterLink
+          to="/login"
+          :class="`${route.path === '/blog' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+        >
+          Log In
+        </RouterLink>
       </div>
     </div>
   </nav>

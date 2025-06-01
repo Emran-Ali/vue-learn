@@ -1,17 +1,17 @@
 <template>
   <div class="container mx-auto p-4 max-w-md">
-    <h1 class="text-2xl font-bold text-green-400 mb-4">Log In</h1>
+    <h1 class="text-2xl font-bold text-green-400 mb-4">Get User Token</h1>
     <hr class="mb-4 border-4 text-green-300" />
 
     <form @submit.prevent="joinChat" method="post" class="uk-form-stacked">
       <div class="uk-margin-small-top uk-width-1-1@s">
-        <label class="uk-form-label" for="username">Username</label>
+        <label class="text-xl text-cyan-900 mb-2" for="username">User ID</label>
         <div class="uk-form-controls">
           <input
             id="username"
-            class="uk-input"
+            class="border-b-cyan-900 border-2 rounded p-2"
             type="text"
-            v-model.trim="username"
+            v-model.trim="userId"
             required
             placeholder="Enter your username"
           />
@@ -21,9 +21,9 @@
       <div class="uk-margin-top uk-width-1-1@s">
         <button
           type="submit"
-          class="uk-button uk-button-primary uk-width-1-1 uk-border-rounded uk-text-uppercase"
+          class="bg-cyan-800 text-white p-4 font-semibold m-2 rounded-lg"
         >
-          Join Chat
+          Get Token
         </button>
       </div>
     </form>
@@ -33,20 +33,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStreamStore } from '@/store/stream-store.ts'
 
-const username = ref('')
+const userId = ref('')
 const router = useRouter()
+const streamStore = useStreamStore()
 
-const joinChat = () => {
-  if (!username.value) {
-    alert('Username is required')
+const  joinChat = async () => {
+  if (!userId.value) {
+    alert('User Id is required')
     return
   }
+  const data = await streamStore.getStreamToken(userId.value)
+  console.log(data)
 
-  // You can store the username in localStorage or Vuex if needed
-  localStorage.setItem('chat_username', username.value)
-
-  // Redirect to the chat page (make sure route exists)
-  router.push({ name: 'ChatRoom' })
+  await router.push('/lesson-call')
 }
 </script>

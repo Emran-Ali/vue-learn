@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { StreamVideoClient, type User, type StreamVideoParticipant } from '@stream-io/video-client'
-import { isMobile } from '../utils/Mobile'
-import { ClosedCaptionManager } from '../utils/CloseCaption'
 import VideoParticipant from '../components/VideoParticipant.vue'
 import CallControls from '../components/CallControls.vue'
-import { useRouter } from 'vue-router'
 
 interface UserInfo {
   userId: string
@@ -17,7 +14,6 @@ const props = defineProps<{
   userInfo: UserInfo
 }>()
 
-const router = useRouter()
 const apiKey = props.userInfo.apiKey
 const token = props.userInfo.token
 const user: User = { id: props.userInfo.userId }
@@ -38,10 +34,8 @@ call.screenShare.setSettings({
   maxBitrate: 1500000,
 })
 
-let closedCaptionManager: ClosedCaptionManager
 const participants = ref<StreamVideoParticipant[]>([])
 const participantsRef = ref<HTMLElement | null>(null)
-const captionContainerRef = ref<HTMLElement | null>(null)
 const connectionStatus = ref<'connected' | 'disconnected' | 'reconnecting'>('connected')
 
 onMounted(() => {
@@ -78,18 +72,15 @@ const handleLeaveCall = async () => {
     // Set connection status to disconnected
     connectionStatus.value = 'disconnected'
 
-    // Disable camera and microphone
     await call.camera.disable()
     await call.microphone.disable()
 
-    // Leave the call
     await call.leave()
 
-    // End the call (if you're the host)
     try {
       await call.endCall()
     } catch (error) {
-      console.log('Not the host or call already ended')
+      console.log('Not the host or call already ended', error)
     }
 
     // Show confirmation that call has ended
@@ -145,7 +136,6 @@ onBeforeUnmount(() => {
         :call="call"
       />
     </div>
-    <!-- Show call ended message if disconnected -->
     <div v-else class="call-ended-container">
       <h2>Call Ended</h2>
       <p>You have left the video call.</p>

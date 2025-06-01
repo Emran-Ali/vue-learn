@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { name } from '@stream-io/video-client'
-
 export const useStreamStore = defineStore('stream', () => {
   async function login(email: string, password: string) {
     try {
@@ -34,24 +32,30 @@ export const useStreamStore = defineStore('stream', () => {
     id: string,
   ): Promise<{ userId: string; token: string; apiKey: string; channelId: string }> {
     const response = await axios.get(
-      `https://aka-situation-pacific-manuals.trycloudflare.com/stream-webhook/stream-info?userId=${id}`,
+      `http://localhost:3030/stream-webhook/stream-info?userId=${id}`,
     )
     return response.data
   }
 
   async function createUser(user: { userId: string; name: string; role: string; image?: string }) {
+    console.log('Created user', user)
     const response = await axios.post('http://localhost:3030/stream/create-user', user)
 
     return response.data
   }
 
-  async function getStreaToken(userId: string) {
-    const response = await axios.get(`http://localhost:3030/stream/user-token${userId}`)
+  async function getStreamToken(userId: string) {
+    const response = await axios.get(`http://localhost:3030/stream/user-token?userId=${userId}`)
+
+    console.log(response.data.streamToken, response.data, 'token from store')
+
+    localStorage.setItem('user', userId)
+    localStorage.setItem('streamToken', response.data)
 
     return response.data
   }
 
-  async function createCall(callData: { callid: string; teacherId: string; studentId: string }) {
+  async function createCall(callData: { callId: string; teacherId: string; studentId: string }) {
     const response = await axios.post('http://localhost:3030/stream/create-call', callData)
     return response.data
   }
@@ -60,7 +64,7 @@ export const useStreamStore = defineStore('stream', () => {
     login: login,
     getUser: getUser,
     createUser: createUser,
-    getStreaToken: getStreaToken,
+    getStreamToken: getStreamToken,
     createCall: createCall,
   }
 })

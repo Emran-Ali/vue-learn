@@ -13,17 +13,15 @@
       {{ callingStateLabel }}
     </div>
 
-    <RingingCallControls
-      v-if="[CallingState.RINGING, CallingState.JOINING].includes(callingState)"
-    />
+    <!--    <RingingCallControls-->
+    <!--      v-if="[CallingState.RINGING, CallingState.JOINING].includes(callingState)"-->
+    <!--    />-->
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { CallingState, type UserResponse, Call, StreamVideoClient } from '@stream-io/video-client'
-import Avatar from '../Avatar.vue'
-import RingingCallControls from './RingingCallControls.vue'
+import { CallingState, type UserResponse, StreamVideoClient } from '@stream-io/video-client'
 
 export interface RingingCallProps {
   /**
@@ -57,9 +55,8 @@ const CALLING_STATE_TO_LABEL: Record<CallingState, string> = {
   [CallingState.LEFT]: 'Left call',
 }
 
-const call = inject<Call>('call')
-
 const client = inject<StreamVideoClient>('streamClient')
+console.log(client, 'Client from Ring')
 
 client?.state.calls$.subscribe((calls) => {
   const incomingCalls = calls.filter(
@@ -72,14 +69,13 @@ client?.state.calls$.subscribe((calls) => {
   console.log('Outgoing calls', outgoingCalls)
 })
 
-if (!call) {
-  return
-}
-
 const { callingState$ } = call.state
 
 const callingState = callingState$.subscribe((state) => {
   console.log('Calling state changed:', state)
+})
+const members = callingState$.subscribe((members) => {
+  console.log('Members changed:', members)
 })
 
 const membersToShow = computed<UserResponse[]>(() => {
