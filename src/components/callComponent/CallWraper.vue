@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
-import { StreamVideoClient, type User } from '@stream-io/video-client'
+import { provide, onMounted, onUnmounted } from 'vue'
+import { useStreamClient } from '@/composables/useStreamClient'
 import { useRouter } from 'vue-router'
+import type { User } from '@stream-io/video-client'
 
 const apiKey = import.meta.env.VITE_STREAM_API_KEY
-const token = localStorage.getItem('streamToken') ?? undefined
+const token = localStorage.getItem('streamToken') ?? ''
 const userId = localStorage.getItem('user') ?? ''
 const user: User = { id: userId }
 
@@ -14,31 +15,16 @@ if (!apiKey || !token || !userId) {
   router.push('/login')
 }
 
-const client = ref<StreamVideoClient | null>(null)
+const { client, initialize, disconnect } = useStreamClient(apiKey, token, user)
 
-// Initialize Stream client
-const initializeClient = async () => {
-  try {
-    client.value = new StreamVideoClient({
-      apiKey,
-      token,
-      user,
-      options: { logLevel: 'info' },
-    })
-  } catch (error) {
-    console.error('Failed to initialize Stream client:', error)
-  }
-}
 provide('streamClient', client)
 
-// Lifecycle
 onMounted(() => {
-  initializeClient()
+  initialize()
 })
 
 onUnmounted(() => {
-  subscription?.unsubscribe()
-  client.value?.disconnectUser()
+  disconnect()
 })
 </script>
 
@@ -47,5 +33,3 @@ onUnmounted(() => {
     <slot :client="client" />
   </div>
 </template>
-
-<style scoped></style>

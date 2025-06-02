@@ -28,10 +28,10 @@ const toggleMobileMenu = () => {
               Home
             </RouterLink>
             <RouterLink
-              to="/lesson-call"
-              :class="`${route.path === '/lesson-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+              to="/message"
+              :class="`${route.path === '/message' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
-              Lesson Call
+              Message
             </RouterLink>
 
             <RouterLink
@@ -106,17 +106,10 @@ const toggleMobileMenu = () => {
           Home
         </RouterLink>
         <RouterLink
-          to="/lesson-call"
-          :class="`${route.path === '/lesson-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
+          to="/message"
+          :class="`${route.path === '/message' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
         >
-          Lesson Call
-        </RouterLink>
-
-        <RouterLink
-          to="/teachers"
-          :class="`${route.path === '/blogs' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-        >
-          Blog
+          Message
         </RouterLink>
 
         <RouterLink

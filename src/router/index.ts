@@ -4,7 +4,7 @@ import LogIn from '@/views/LogIn.vue'
 import Lesson from '@/views/Lesson.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import CreateUser from '@/views/CreateUser.vue'
-import LessonCall from '@/views/LessonCall.vue'
+import Message from '@/views/Message.vue'
 import CreateCall from '@/components/callComponent/CreateCall.vue'
 
 const route = createRouter({
@@ -42,9 +42,9 @@ const route = createRouter({
       component: CreateCall,
     },
     {
-      path: '/lesson-call',
-      name: 'lesson-call',
-      component: LessonCall,
+      path: '/message',
+      name: 'message',
+      component: Message,
     },
   ],
 })
