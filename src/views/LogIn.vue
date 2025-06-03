@@ -19,10 +19,7 @@
       </div>
 
       <div class="uk-margin-top uk-width-1-1@s">
-        <button
-          type="submit"
-          class="bg-cyan-800 text-white p-4 font-semibold m-2 rounded-lg"
-        >
+        <button type="submit" class="bg-cyan-800 text-white p-4 font-semibold m-2 rounded-lg">
           Get Token
         </button>
       </div>
@@ -39,7 +36,7 @@ const userId = ref('')
 const router = useRouter()
 const streamStore = useStreamStore()
 
-const  joinChat = async () => {
+const joinChat = async () => {
   if (!userId.value) {
     alert('User Id is required')
     return
@@ -47,6 +44,6 @@ const  joinChat = async () => {
   const data = await streamStore.getStreamToken(userId.value)
   console.log(data)
 
-  await router.push('/lesson-call')
+  await router.push('/message')
 }
 </script>

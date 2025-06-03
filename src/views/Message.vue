@@ -54,8 +54,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-[#E5E7EB] h-[calc(100vh-4rem)]">
-    <div class="container p-8 mx-auto max-h-full overflow-hidden">
+  <div class="bg-[#E5E7EB]">
+    <div class="container p-4 mx-auto overflow-hidden">
       <div v-if="isConnecting" class="text-center">Loading chat...</div>
       <div v-else-if="error" class="text-red-500 text-center">
         {{ error }}
