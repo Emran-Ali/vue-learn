@@ -374,7 +374,9 @@ onUnmounted(() => {
 
                     <!-- File attachment -->
                     <template v-else-if="renderAttachment(attachment)?.type === 'file'">
-                      <div class="flex items-center p-2 bg-white bg-opacity-20 rounded-lg">
+                      <div
+                        class="flex items-center p-2 bg-blue-100 text-black bg-opacity-20 rounded-lg"
+                      >
                         <svg
                           class="w-6 h-6 text-current mr-2"
                           fill="currentColor"
