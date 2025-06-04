@@ -1,5 +1,5 @@
 <template>
-  <div v-if="channel" class="border-t border-gray-200 p-4 bg-white">
+  <div v-if="channel" class="p-4">
     <!-- File upload preview -->
     <div
       v-if="isFileSelected"

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
-import type { StreamChat, Channel, Event, MessageResponse } from 'stream-chat'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import type { StreamChat, Channel, Event } from 'stream-chat'
 import SearchUser from '@/components/ChatComponents/SearchUser.vue'
 import MessageInput from '@/components/ChatComponents/MessageInput.vue'
 import ChatMessage from '@/components/ChatComponents/ChatMessage.vue'
@@ -13,8 +13,6 @@ const selectedChannel = ref<Channel | null>(null)
 const loadingChannels = ref(true)
 const typingUsers = ref<{ [key: string]: string }>({})
 const typingTimeout = ref<{ [key: string]: any }>({})
-const urlPreviews = ref<{ [key: string]: any }>({})
-const isLoadingUrlPreview = ref(false)
 const selectedUserId = ref<string | null>(null)
 const error = ref<string | null>(null)
 
@@ -91,7 +89,6 @@ const handleUserSelected = async (user: any) => {
     let channel
 
     if (existingChannels.length === 0) {
-      // Create new channel
       channel = props.client.channel('messaging', {
         members: [userId, user.id],
         name: user.name || user.id,
@@ -102,7 +99,7 @@ const handleUserSelected = async (user: any) => {
     }
 
     await selectChannel(channel)
-    await loadChannels() // Refresh channels list
+    await loadChannels()
   } catch (err) {
     console.error('Error creating or finding channel:', err)
     error.value = 'Failed to create or find channel'
@@ -118,13 +115,21 @@ const handleSendMessage = async (payload: { text: string; file: File | null }) =
       text: payload.text,
     }
 
-    // Handle file attachment
+    // Handle file attachment - upload first
     if (payload.file) {
+      let fileResponse
+
+      if (payload.file.type.startsWith('image/')) {
+        fileResponse = await selectedChannel.value.sendImage(payload.file)
+      } else {
+        fileResponse = await selectedChannel.value.sendFile(payload.file)
+      }
+
       messageData.attachments = [
         {
           type: payload.file.type.startsWith('image/') ? 'image' : 'file',
-          file: payload.file,
-          fallback: payload.file.name,
+          asset_url: fileResponse.file, // Use the returned URL
+          thumb_url: fileResponse.file, // For images
         },
       ]
     }
@@ -236,7 +241,7 @@ const dismissError = () => {
 </script>
 
 <template>
-  <div class="grid grid-cols-4 gap-3 mx-auto">
+  <div class="grid grid-cols-4 gap-3 mx-auto min-h-[calc(100vh-6rem)]">
     <!-- Error notification -->
     <div v-if="error" class="col-span-4 mb-4">
       <div
@@ -297,16 +302,13 @@ const dismissError = () => {
 
     <!-- Chat Area -->
     <div
-      class="rounded-xl shadow-2xl border border-gray-300 max-h-full bg-white col-span-2 flex flex-col"
+      class="rounded-xl shadow-2xl border border-gray-300 max-h-[calc(100vh-6.25rem)] overflow-hidden bg-white col-span-2 flex flex-col"
     >
       <!-- Channel Header -->
-      <div v-if="selectedChannel" class="border-b border-gray-200 p-4">
+      <div v-if="selectedChannel" class="p-4">
         <h2 class="text-xl font-bold text-gray-800">
           {{ selectedChannel.data?.name || 'Unnamed Channel' }}
         </h2>
-        <div v-if="typingText" class="text-sm text-gray-500 animate-pulse">
-          {{ typingText }}
-        </div>
       </div>
 
       <div v-if="!selectedChannel" class="flex-1 flex items-center justify-center text-gray-500">
@@ -314,8 +316,11 @@ const dismissError = () => {
       </div>
 
       <!-- Messages Area -->
-      <div v-else class="flex-1 flex flex-col min-h-0">
-        <ChatMessage :channel="selectedChannel" class="flex-1" />
+      <div v-else class="flex-1 flex flex-col h-full bg-[#F5F9FF] rounded-2xl">
+        <ChatMessage :channel="selectedChannel" />
+        <div v-if="typingText" class="text-sm text-gray-500 animate-pulse px-4">
+          {{ typingText }}
+        </div>
         <MessageInput
           :channel="selectedChannel"
           @send-message="handleSendMessage"
@@ -326,7 +331,9 @@ const dismissError = () => {
     </div>
 
     <!-- Files and links panel -->
-    <div class="rounded-xl shadow-2xl border border-gray-300 p-4 h-full overflow-y-auto bg-white">
+    <div
+      class="rounded-xl shadow-2xl border border-gray-300 p-4 h-full overflow-y-auto bg-white hidden md:block"
+    >
       <h3 class="text-lg font-semibold mb-4 text-gray-800">Shared Content</h3>
       <div class="text-center text-gray-500 py-4">No shared content in this channel yet</div>
     </div>

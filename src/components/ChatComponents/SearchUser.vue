@@ -1,24 +1,31 @@
 <template>
   <div class="relative py-2" ref="selectRef">
     <!-- Search Input -->
-    <div class="relative">
+    <div
+      class="inline-flex w-full px-2 py-1 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none overflow-hidden"
+    >
+      <div class="h-8 w-8">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="36px"
+          height="36px"
+          viewBox="0 0 1024 1024"
+          class="icon"
+          version="1.1"
+        >
+          <path
+            d="M853.988 783.582L704.985 634.578c29.249-49.501 46.054-107.229 46.054-168.891 0-183.636-148.866-332.504-332.503-332.504S86.034 282.051 86.034 465.688 234.9 798.19 418.536 798.19c61.662 0 119.39-16.805 168.892-46.055L736.43 901.138c32.462 32.462 85.094 32.462 117.558 0 32.462-32.461 32.462-85.094 0-117.556z m-435.452-21.339c-163.784 0-296.557-132.775-296.557-296.556 0-163.784 132.773-296.557 296.557-296.557 163.782 0 296.556 132.773 296.556 296.557 0 163.781-132.773 296.556-296.556 296.556z m411.939 115.384c-19.476 19.478-51.056 19.478-70.534 0L615.726 733.411a334.417 334.417 0 0 0 70.421-70.379l148.017 151.781c19.478 19.479 15.789 43.336-3.689 62.814z"
+            fill="#88B304"
+          />
+        </svg>
+      </div>
       <input
         type="text"
         v-model="searchQuery"
         @input="handleInput"
         :placeholder="placeholder"
-        class="w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+        class="text-gray-700 bg-white focus:outline-none focus:border-blue-500 focus:ring-none"
       />
-      <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          ></path>
-        </svg>
-      </div>
     </div>
 
     <!-- Dropdown Options -->

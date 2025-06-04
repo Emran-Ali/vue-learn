@@ -43,8 +43,7 @@ const loadInitialMessages = async () => {
   error.value = null
 
   const fetchedMessages = await fetchMessages()
-  console.log(fetchedMessages, 'fetchedMessages')
-  messages.value = fetchedMessages.reverse() // Reverse to show oldest first
+  messages.value = fetchedMessages // Reverse to show oldest first
   hasMoreMessages.value = fetchedMessages.length === MESSAGES_LIMIT
 
   loading.value = false
@@ -67,13 +66,13 @@ const loadMoreMessages = async () => {
 
   if (fetchedMessages.length > 0) {
     const scrollHeight = messagesContainer.value?.scrollHeight || 0
-    messages.value = [...fetchedMessages.reverse(), ...messages.value]
+    messages.value = [...fetchedMessages, ...messages.value]
 
     // Maintain scroll position
     await nextTick()
     if (messagesContainer.value) {
       const newScrollHeight = messagesContainer.value.scrollHeight
-      messagesContainer.value.scrollTop = newScrollHeight - scrollHeight
+      messagesContainer.value.scrollTop = scrollHeight
     }
 
     hasMoreMessages.value = fetchedMessages.length === MESSAGES_LIMIT
@@ -85,10 +84,9 @@ const loadMoreMessages = async () => {
 }
 
 // Scroll management
-const scrollToBottom = () => {
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-  }
+const scrollToBottom = (behavior: 'auto' | 'smooth' = 'auto') => {
+  const el = messagesContainer.value
+  if (el) el.scrollTo({ top: el.scrollHeight, behavior })
 }
 
 const handleScroll = () => {
@@ -102,20 +100,37 @@ const handleScroll = () => {
 
 // Event handlers
 const handleNewMessage = (event: any) => {
-  console.log(event, ' props.channel')
-  if (event.cid === props.channel.cid) {
-    const isAtBottom = messagesContainer.value
-      ? messagesContainer.value.scrollTop + messagesContainer.value.clientHeight >=
-        messagesContainer.value.scrollHeight - 10
-      : true
+  if (event.cid !== props.channel.cid) return
 
-    messages.value.push(event.message)
+  const container = messagesContainer.value
+  const isAtBottom = !container
+    ? true
+    : container.scrollTop + container.clientHeight >= container.scrollHeight - 10
 
-    // Auto-scroll to bottom if user was already at bottom or if it's their own message
-    if (isAtBottom || event.message.user?.id === userId) {
-      nextTick(() => scrollToBottom())
+  messages.value.push(event.message)
+
+  // Wait for DOM to update after adding message
+  nextTick(() => {
+    // If message has image(s), wait for the image(s) to finish loading
+    const images = messagesContainer.value?.querySelectorAll('img')
+    if (images && images.length > 0) {
+      let loadedCount = 0
+      images.forEach((img) => {
+        if (img.complete) loadedCount++
+        else img.addEventListener('load', checkLoaded, { once: true })
+      })
+      function checkLoaded() {
+        loadedCount++
+        if (loadedCount === images!.length) {
+          scrollToBottom('smooth')
+        }
+      }
+      // If all are already loaded
+      if (loadedCount === images.length) scrollToBottom('smooth')
+    } else {
+      scrollToBottom('smooth')
     }
-  }
+  })
 }
 
 const handleMessageUpdated = (event: any) => {
@@ -220,7 +235,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
+  <div class="flex flex-col h-[80%]">
     <!-- Loading indicator for more messages -->
     <div v-if="loadingMore" class="text-center py-2">
       <div class="inline-flex items-center text-sm text-gray-500">
@@ -260,142 +275,140 @@ onUnmounted(() => {
       </div>
 
       <template v-else>
-        <div class="max-h-100 overflow-auto">
+        <div
+          v-for="(message, index) in messages"
+          :key="message.id"
+          class="message-wrapper"
+          :class="{
+            'mb-4': getMessageGrouping(message, index).isLast,
+            'mb-1': !getMessageGrouping(message, index).isLast,
+          }"
+        >
+          <!-- Timestamp (shown for first message in group) -->
           <div
-            v-for="(message, index) in messages"
-            :key="message.id"
-            class="message-wrapper"
-            :class="{
-              'mb-4': getMessageGrouping(message, index).isLast,
-              'mb-1': !getMessageGrouping(message, index).isLast,
-            }"
+            v-if="getMessageGrouping(message, index).isFirst"
+            class="text-xs text-gray-400 text-center mb-2 select-none"
           >
-            <!-- Timestamp (shown for first message in group) -->
+            {{ formatTimestamp(message.created_at) }}
+          </div>
+
+          <div
+            class="flex items-end gap-2 max-w-[80%]"
+            :class="message.user!.id === userId ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'"
+          >
+            <!-- Avatar (only show for last message in group) -->
             <div
-              v-if="getMessageGrouping(message, index).isFirst"
-              class="text-xs text-gray-400 text-center mb-2 select-none"
+              v-if="getMessageGrouping(message, index).showAvatar"
+              class="flex-shrink-0 rounded-full overflow-hidden h-8 w-8 bg-gray-300 flex items-center justify-center"
+              :class="{
+                invisible:
+                  !getMessageGrouping(message, index).showAvatar && message.user!.id !== userId,
+              }"
             >
-              {{ formatTimestamp(message.created_at) }}
+              <img
+                v-if="message.user!.image"
+                :src="message.user!.image"
+                :alt="message.user!.name || 'User'"
+                class="object-cover h-8 w-8"
+              />
+              <span v-else class="text-gray-600 font-semibold text-sm">
+                {{ (message.user!.name || message.user!.id || 'U')[0].toUpperCase() }}
+              </span>
             </div>
+            <div v-else class="w-8"></div>
 
-            <div
-              class="flex items-end gap-2 max-w-[80%]"
-              :class="message.user!.id === userId ? 'ml-auto flex-row-reverse' : 'mr-auto flex-row'"
-            >
-              <!-- Avatar (only show for last message in group) -->
+            <!-- Message bubble -->
+            <div class="flex flex-col max-w-full">
+              <!-- User name (only for first message in group from others) -->
               <div
-                v-if="getMessageGrouping(message, index).showAvatar"
-                class="flex-shrink-0 rounded-full overflow-hidden h-8 w-8 bg-gray-300 flex items-center justify-center"
-                :class="{
-                  invisible:
-                    !getMessageGrouping(message, index).showAvatar && message.user!.id !== userId,
-                }"
+                v-if="getMessageGrouping(message, index).isFirst && message.user!.id !== userId"
+                class="text-xs text-gray-500 mb-1 px-3"
               >
-                <img
-                  v-if="message.user!.image"
-                  :src="message.user!.image"
-                  :alt="message.user!.name || 'User'"
-                  class="object-cover h-8 w-8"
-                />
-                <span v-else class="text-gray-600 font-semibold text-sm">
-                  {{ (message.user!.name || message.user!.id || 'U')[0].toUpperCase() }}
-                </span>
+                {{ message.user!.name || message.user!.id }}
               </div>
-              <div v-else class="w-8"></div>
 
-              <!-- Message bubble -->
-              <div class="flex flex-col max-w-full">
-                <!-- User name (only for first message in group from others) -->
-                <div
-                  v-if="getMessageGrouping(message, index).isFirst && message.user!.id !== userId"
-                  class="text-xs text-gray-500 mb-1 px-3"
-                >
-                  {{ message.user!.name || message.user!.id }}
-                </div>
-
-                <div
-                  class="px-3 py-2 text-sm break-words"
-                  :class="[
-                    message.user!.id === userId
-                      ? 'bg-blue-500 text-white ml-2'
-                      : 'bg-gray-100 text-gray-900 mr-2',
-                    getMessageGrouping(message, index).isFirst &&
-                    getMessageGrouping(message, index).isLast
-                      ? 'rounded-2xl'
-                      : getMessageGrouping(message, index).isFirst
+              <div
+                class="px-3 py-2 text-sm break-words"
+                :class="[
+                  message.user!.id === userId
+                    ? 'bg-blue-500 text-white ml-2'
+                    : 'bg-gray-100 text-gray-900 mr-2',
+                  getMessageGrouping(message, index).isFirst &&
+                  getMessageGrouping(message, index).isLast
+                    ? 'rounded-2xl'
+                    : getMessageGrouping(message, index).isFirst
+                      ? message.user!.id === userId
+                        ? 'rounded-2xl rounded-br-md'
+                        : 'rounded-2xl rounded-bl-md'
+                      : getMessageGrouping(message, index).isLast
                         ? message.user!.id === userId
-                          ? 'rounded-2xl rounded-br-md'
-                          : 'rounded-2xl rounded-bl-md'
-                        : getMessageGrouping(message, index).isLast
-                          ? message.user!.id === userId
-                            ? 'rounded-2xl rounded-tr-md'
-                            : 'rounded-2xl rounded-tl-md'
-                          : message.user!.id === userId
-                            ? 'rounded-r-2xl rounded-l-md'
-                            : 'rounded-l-2xl rounded-r-md',
-                  ]"
+                          ? 'rounded-2xl rounded-tr-md'
+                          : 'rounded-2xl rounded-tl-md'
+                        : message.user!.id === userId
+                          ? 'rounded-r-2xl rounded-l-md'
+                          : 'rounded-l-2xl rounded-r-md',
+                ]"
+              >
+                <!-- Message text -->
+                <div v-if="message.text" class="whitespace-pre-wrap">{{ message.text }}</div>
+
+                <!-- Attachments -->
+                <div
+                  v-if="message.attachments && message.attachments.length > 0"
+                  class="mt-2 space-y-2"
                 >
-                  <!-- Message text -->
-                  <div v-if="message.text" class="whitespace-pre-wrap">{{ message.text }}</div>
-
-                  <!-- Attachments -->
                   <div
-                    v-if="message.attachments && message.attachments.length > 0"
-                    class="mt-2 space-y-2"
+                    v-for="(attachment, attachIndex) in message.attachments"
+                    :key="attachIndex"
+                    class="attachment"
                   >
-                    <div
-                      v-for="(attachment, attachIndex) in message.attachments"
-                      :key="attachIndex"
-                      class="attachment"
-                    >
-                      <!-- Image attachment -->
-                      <template v-if="renderAttachment(attachment)?.type === 'image'">
-                        <img
-                          :src="renderAttachment(attachment)?.url"
-                          :alt="renderAttachment(attachment)?.alt"
-                          class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                          @click="window.open(renderAttachment(attachment)?.url, '_blank')"
-                        />
-                      </template>
+                    <!-- Image attachment -->
+                    <template v-if="renderAttachment(attachment)?.type === 'image'">
+                      <img
+                        :src="renderAttachment(attachment)?.url"
+                        :alt="renderAttachment(attachment)?.alt"
+                        class="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                        @click="window.open(renderAttachment(attachment)?.url, '_blank')"
+                      />
+                    </template>
 
-                      <!-- File attachment -->
-                      <template v-else-if="renderAttachment(attachment)?.type === 'file'">
-                        <div class="flex items-center p-2 bg-white bg-opacity-20 rounded-lg">
-                          <svg
-                            class="w-6 h-6 text-current mr-2"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
+                    <!-- File attachment -->
+                    <template v-else-if="renderAttachment(attachment)?.type === 'file'">
+                      <div class="flex items-center p-2 bg-white bg-opacity-20 rounded-lg">
+                        <svg
+                          class="w-6 h-6 text-current mr-2"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                          <p class="text-sm font-medium truncate">
+                            {{ renderAttachment(attachment)?.name }}
+                          </p>
+                          <p class="text-xs opacity-75">
+                            {{ formatFileSize(renderAttachment(attachment)?.size) }}
+                          </p>
+                        </div>
+                        <a
+                          :href="renderAttachment(attachment)?.url"
+                          target="_blank"
+                          class="ml-2 text-current hover:opacity-75"
+                        >
+                          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path
                               fill-rule="evenodd"
-                              d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                              d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
                               clip-rule="evenodd"
                             />
                           </svg>
-                          <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium truncate">
-                              {{ renderAttachment(attachment)?.name }}
-                            </p>
-                            <p class="text-xs opacity-75">
-                              {{ formatFileSize(renderAttachment(attachment)?.size) }}
-                            </p>
-                          </div>
-                          <a
-                            :href="renderAttachment(attachment)?.url"
-                            target="_blank"
-                            class="ml-2 text-current hover:opacity-75"
-                          >
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path
-                                fill-rule="evenodd"
-                                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                clip-rule="evenodd"
-                              />
-                            </svg>
-                          </a>
-                        </div>
-                      </template>
-                    </div>
+                        </a>
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
