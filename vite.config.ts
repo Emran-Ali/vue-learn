@@ -10,6 +10,9 @@ export default defineConfig({
   plugins: [vue(), vueJsx(), vueDevTools(), tailwindcss()],
   server: {
     host: true,
+    watch: {
+      usePolling: true,
+    },
     port: 3000,
     strictPort: true,
     allowedHosts: ['localhost', 'pride-operations-ls-obj.trycloudflare.com', '.trycloudflare.com'],

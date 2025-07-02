@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto p-4 max-w-lg">
-    <h1 class="text-2xl font-bold text-indigo-600 mb-4">Log In to Messaging App hello</h1>
+    <h1 class="text-2xl font-bold text-indigo-600 mb-4">Log In to Messaging App</h1>
     <hr class="mb-4 border-4 text-indigo-600" />
 
     <form @submit.prevent="login" method="post" class="uk-form-stacked">
