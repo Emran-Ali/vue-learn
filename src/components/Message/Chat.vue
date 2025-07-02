@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import type { StreamChat, Channel, Event } from 'stream-chat'
-import SearchUser from '~/components/views/Message/SearchUser.vue'
-import ChatMessage from '~/components/views/Message/ChatMessage.vue'
-import MessageInput from '~/components/views/Message/MessageInput.vue'
-import SharedContent from '~/components/views/Message/SharedContent.vue'
-import ChatHeader from '~/components/views/Message/ChatHeader.vue'
-import ChannelList from '~/components/views/Message/ChannelList.vue'
+import SearchUser from '@/components/Message/SearchUser.vue'
+import ChannelList from '@/components/Message/ChannelList.vue'
+import ChatHeader from '@/components/Message/ChatHeader.vue'
+import ChatMessage from '@/components/Message/ChatMessage.vue'
+import MessageInput from '@/components/Message/MessageInput.vue'
+import SharedContent from '@/components/Message/SharedContent.vue'
+import { useRoute } from 'vue-router'
 
 const props = defineProps<{ client: StreamChat; userId: string }>()
 const route = useRoute()
@@ -23,13 +24,10 @@ const unreadChannels = ref<boolean>(false)
 
 // Computed
 const typingText = computed(() => {
-  const userIds = Object.keys(typingUsers.value).filter(
-    (id) => id !== props.userId
-  )
+  const userIds = Object.keys(typingUsers.value).filter((id) => id !== props.userId)
 
   if (userIds.length === 0) return ''
-  if (userIds.length === 1)
-    return `${typingUsers.value[userIds[0]]} is typing...`
+  if (userIds.length === 1) return `${typingUsers.value[userIds[0]]} is typing...`
   if (userIds.length === 2)
     return `${typingUsers.value[userIds[0]]} and ${typingUsers.value[userIds[1]]} are typing...`
 
@@ -143,9 +141,7 @@ const handleSendMessage = async (payload: { text: string; files: File[] }) => {
 
         try {
           // Update progress (you can emit this or update a reactive variable)
-          console.log(
-            `Uploading file ${uploadedFiles + 1} of ${totalFiles}: ${file.name}`
-          )
+          console.log(`Uploading file ${uploadedFiles + 1} of ${totalFiles}: ${file.name}`)
 
           let fileResponse
 
@@ -167,9 +163,7 @@ const handleSendMessage = async (payload: { text: string; files: File[] }) => {
           })
 
           uploadedFiles++
-          console.log(
-            `Successfully uploaded: ${file.name} (${uploadedFiles}/${totalFiles})`
-          )
+          console.log(`Successfully uploaded: ${file.name} (${uploadedFiles}/${totalFiles})`)
         } catch (fileError) {
           console.error(`Error uploading file ${file.name}:`, fileError)
           // Continue with other files
@@ -279,7 +273,7 @@ watch(
   () => unreadChannels.value,
   () => {
     loadChannels()
-  }
+  },
 )
 
 // Lifecycle
@@ -335,9 +329,7 @@ const dismissError = () => {
     </div>
 
     <!-- Channels List -->
-    <div
-      class="rounded-xl border border-gray-300 bg-white flex flex-col h-[80vh]"
-    >
+    <div class="rounded-xl border border-gray-300 bg-white flex flex-col h-[80vh]">
       <!-- Fixed Header Section -->
       <div class="p-2 flex-shrink-0">
         <h2 class="text-lg font-bold text-gray-800">Chats</h2>
@@ -353,22 +345,14 @@ const dismissError = () => {
       <div class="flex bg-[#F5F9FF] p-1 m-2 rounded-lg">
         <div
           class="flex-1 px-4 py-2 text-center cursor-pointer transition-all duration-200"
-          :class="
-            !unreadChannels
-              ? 'text-gray-900 bg-white rounded-lg shadow-sm'
-              : 'text-gray-500'
-          "
+          :class="!unreadChannels ? 'text-gray-900 bg-white rounded-lg shadow-sm' : 'text-gray-500'"
           @click="unreadChannels = false"
         >
           All
         </div>
         <div
           class="flex-1 px-4 py-2 text-center cursor-pointer transition-all duration-200"
-          :class="
-            unreadChannels
-              ? 'text-gray-900 bg-white rounded-lg shadow-sm'
-              : 'text-gray-500'
-          "
+          :class="unreadChannels ? 'text-gray-900 bg-white rounded-lg shadow-sm' : 'text-gray-500'"
           @click="unreadChannels = true"
         >
           Unread
@@ -376,14 +360,9 @@ const dismissError = () => {
       </div>
 
       <!-- Loading State -->
-      <div
-        v-if="loadingChannels"
-        class="flex-1 flex items-center justify-center text-gray-500"
-      >
+      <div v-if="loadingChannels" class="flex-1 flex items-center justify-center text-gray-500">
         <div class="text-center">
-          <div
-            class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"
-          ></div>
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
           <p class="mt-2">Loading channels...</p>
         </div>
       </div>
@@ -412,19 +391,10 @@ const dismissError = () => {
     </div>
 
     <!-- Chat Area -->
-    <div
-      class="rounded-xl border border-gray-300 bg-white col-span-2 flex flex-col h-[80vh]"
-    >
+    <div class="rounded-xl border border-gray-300 bg-white col-span-2 flex flex-col h-[80vh]">
       <!-- Channel Header - Fixed at top -->
-      <ChatHeader
-        v-if="selectedChannel"
-        :channel="selectedChannel"
-        :user-id="props.userId"
-      />
-      <div
-        v-if="!selectedChannel"
-        class="flex-1 flex items-center justify-center text-gray-500"
-      >
+      <ChatHeader v-if="selectedChannel" :channel="selectedChannel" :user-id="props.userId" />
+      <div v-if="!selectedChannel" class="flex-1 flex items-center justify-center text-gray-500">
         Select a channel to start chatting
       </div>
 
@@ -435,10 +405,7 @@ const dismissError = () => {
       >
         <ChatMessage :channel="selectedChannel" />
         <div class="flex flex-col">
-          <div
-            v-if="typingText"
-            class="text-sm text-gray-500 animate-pulse px-4 py-2"
-          >
+          <div v-if="typingText" class="text-sm text-gray-500 animate-pulse px-4 py-2">
             {{ typingText }}
           </div>
 
@@ -453,11 +420,7 @@ const dismissError = () => {
     </div>
 
     <!-- Files and links panel -->
-    <SharedContent
-      v-if="selectedChannel"
-      :channel="selectedChannel"
-      :client="client"
-    />
+    <SharedContent v-if="selectedChannel" :channel="selectedChannel" :client="client" />
   </div>
 </template>
 

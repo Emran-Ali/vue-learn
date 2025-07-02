@@ -22,43 +22,10 @@ const toggleMobileMenu = () => {
         <div class="hidden md:block">
           <div class="ml-10 flex items-center space-x-4">
             <RouterLink
-              to="/"
-              :class="`${route.path === '/' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-            >
-              Home
-            </RouterLink>
-            <RouterLink
               to="/message"
               :class="`${route.path === '/message' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
             >
               Message
-            </RouterLink>
-
-            <RouterLink
-              to="/blogs"
-              :class="`${route.path === '/blogs' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-            >
-              Blog
-            </RouterLink>
-
-            <RouterLink
-              to="/lessons"
-              :class="`${route.path === '/lessons' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-            >
-              Lesson
-            </RouterLink>
-
-            <RouterLink
-              to="/create-user"
-              :class="`${route.path === '/create-user' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-            >
-              Create User
-            </RouterLink>
-            <RouterLink
-              to="/create-call"
-              :class="`${route.path === '/create-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-            >
-              Create Call
             </RouterLink>
             <RouterLink
               to="/login"
@@ -100,36 +67,10 @@ const toggleMobileMenu = () => {
     <div v-show="isMobileMenuOpen" class="md:hidden">
       <div class="px-2 pt-2 pb-3 space-y-1">
         <RouterLink
-          to="/"
-          :class="`${route.path === '/' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-        >
-          Home
-        </RouterLink>
-        <RouterLink
           to="/message"
           :class="`${route.path === '/message' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
         >
           Message
-        </RouterLink>
-
-        <RouterLink
-          to="/lessons"
-          :class="`${route.path === '/lessons' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-        >
-          Lesson
-        </RouterLink>
-
-        <RouterLink
-          to="/create-user"
-          :class="`${route.path === '/create-user' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-        >
-          Create User
-        </RouterLink>
-        <RouterLink
-          to="/create-call"
-          :class="`${route.path === '/create-call' ? 'bg-indigo-700' : ''} text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium transition duration-300`"
-        >
-          Create Call
         </RouterLink>
         <RouterLink
           to="/login"

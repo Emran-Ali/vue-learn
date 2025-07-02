@@ -1,7 +1,7 @@
 <template>
-  <div class="max-w-md mx-auto p-4 shadow-md mt-10 bg-white rounded">
-    <h2 class="text-lg font-bold mb-4">Create User</h2>
-    <hr class="h-2 bg-lime-400 mb-3" />
+  <div class="container max-w-lg mx-auto p-4">
+    <h1 class="text-2xl font-bold text-indigo-600 mb-4">Log In to Messaging App</h1>
+    <hr class="mb-4 border-4 text-indigo-600" />
     <form @submit.prevent="handleSubmit">
       <div class="mb-4 text-cyan-700">
         <label for="id" class="block text-cyan-900 text-sm font-bold mb-2">ID:</label>
@@ -50,12 +50,19 @@
         Create
       </button>
     </form>
+    <div>
+      Already have an account ?
+      <span @click="handleLogIn" class="text-blue-600 px-3 cursor-pointer font-semibold"
+        >Log In
+      </span>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useStreamStore } from '../store/stream-store'
+import { useRouter } from 'vue-router'
 
 const streamStore = useStreamStore()
 
@@ -66,8 +73,14 @@ const user = ref({
   image: '',
 })
 
+const router = useRouter()
+
 const handleSubmit = async () => {
   console.log(user, 'streamStore submit')
   const res = await streamStore.createUser(user.value)
+}
+
+const handleLogIn = async () => {
+  await router.push('/login')
 }
 </script>

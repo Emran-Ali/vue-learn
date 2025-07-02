@@ -1,29 +1,49 @@
 <template>
-  <div class="container mx-auto p-4 max-w-md">
-    <h1 class="text-2xl font-bold text-green-400 mb-4">Get User Token</h1>
-    <hr class="mb-4 border-4 text-green-300" />
+  <div class="container mx-auto p-4 max-w-lg">
+    <h1 class="text-2xl font-bold text-indigo-600 mb-4">Log In to Messaging App hello</h1>
+    <hr class="mb-4 border-4 text-indigo-600" />
 
-    <form @submit.prevent="joinChat" method="post" class="uk-form-stacked">
+    <form @submit.prevent="login" method="post" class="uk-form-stacked">
       <div class="uk-margin-small-top uk-width-1-1@s">
-        <label class="text-xl text-cyan-900 mb-2" for="username">User ID</label>
+        <label class="text-xl text-cyan-900 mb-2" for="email">User ID</label>
         <div class="uk-form-controls">
           <input
-            id="username"
+            id="email"
             class="border-b-cyan-900 border-2 rounded p-2"
             type="text"
-            v-model.trim="userId"
+            v-model.trim="email"
+            required
+            placeholder="Enter your username"
+          />
+        </div>
+      </div>
+      <div class="uk-margin-small-top uk-width-1-1@s">
+        <label class="text-xl text-cyan-900 mb-2" for="password">Password</label>
+        <div class="uk-form-controls">
+          <input
+            id="password"
+            class="border-b-cyan-900 border-2 rounded p-2"
+            type="password"
+            v-model.trim="password"
             required
             placeholder="Enter your username"
           />
         </div>
       </div>
 
-      <div class="uk-margin-top uk-width-1-1@s">
-        <button type="submit" class="bg-cyan-800 text-white p-4 font-semibold m-2 rounded-lg">
-          Get Token
+      <div class="my-2">
+        <button type="submit" class="bg-cyan-800 text-white py-4 px-6 font-semibold rounded-lg">
+          Log in
         </button>
       </div>
     </form>
+
+    <div>
+      New User ?
+      <span @click="handleSignUp" class="text-blue-600 px-3 cursor-pointer font-semibold"
+        >Sign Up</span
+      >
+    </div>
   </div>
 </template>
 
@@ -32,18 +52,24 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStreamStore } from '@/store/stream-store.ts'
 
-const userId = ref('')
+const email = ref('')
+const password = ref('')
 const router = useRouter()
 const streamStore = useStreamStore()
 
-const joinChat = async () => {
-  if (!userId.value) {
+const login = async () => {
+  if (!email.value) {
     alert('User Id is required')
     return
   }
-  const data = await streamStore.getStreamToken(userId.value)
+  const data = await streamStore.getStreamToken(password.value)
   console.log(data)
 
   await router.push('/message')
+}
+
+const handleSignUp = async () => {
+  console.log('handleSignUp')
+  await router.push('/create-user')
 }
 </script>
